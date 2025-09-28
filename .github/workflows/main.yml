@@ -3,8 +3,6 @@ name: Build Android APK
 on:
   push:
     branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
 
 jobs:
   build-apk:
@@ -17,61 +15,26 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.9'
+        python-version: '3.8'  # Более старая версия для совместимости
         
-    - name: Install system dependencies
+    - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y \
             build-essential \
             git \
-            openjdk-11-jdk \
+            openjdk-8-jdk \
             unzip \
             zip \
-            python3-pip \
-            autoconf \
-            libtool \
-            pkg-config \
-            zlib1g-dev \
-            libncurses5-dev \
-            libncursesw5-dev \
-            cmake \
-            libffi-dev \
-            libssl-dev
+            python3-pip
             
-    - name: Upgrade Python tools
-      run: |
-        python -m pip install --upgrade pip setuptools wheel
-        
     - name: Install Buildozer
       run: |
-        pip install buildozer cython==0.29.33
+        pip install buildozer
         
-    - name: Create buildozer.spec with correct settings
+    - name: Build APK (let Buildozer handle everything)
       run: |
-        buildozer init || true
-        if [ -f buildozer.spec ]; then
-          # Используем более старые версии для совместимости
-          sed -i 's/^android.sdk = .*/android.sdk = 26/g' buildozer.spec
-          sed -i 's/^android.ndk = .*/android.ndk = 19c/g' buildozer.spec
-          sed -i 's/^android.api = .*/android.api = 26/g' buildozer.spec
-          sed -i 's/^android.minapi = .*/android.minapi = 21/g' buildozer.spec
-          sed -i 's/^requirements = .*/requirements = python3,kivy/g' buildozer.spec
-        fi
-        
-    - name: Download Android SDK and accept licenses
-      run: |
-        # Запускаем buildozer чтобы он скачал Android SDK
-        buildozer android updatesdk || true
-        
-        # Ждем пока SDK скачается
-        sleep 30
-        
-        # Принимаем лицензии
-        yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
-        
-    - name: Build APK
-      run: |
+        buildozer init
         buildozer -v android debug
         
     - name: Upload APK
@@ -79,4 +42,3 @@ jobs:
       with:
         name: android-app
         path: bin/*.apk
-        retention-days: 7
