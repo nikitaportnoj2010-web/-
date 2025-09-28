@@ -47,20 +47,11 @@ jobs:
       run: |
         pip install buildozer cython==0.29.33
         
-    - name: Accept Android licenses and setup SDK
-      run: |
-        mkdir -p ~/.android
-        echo "### User Sources for Android SDK Manager" > ~/.android/repositories.cfg
-        touch ~/.android/repositories.cfg
-        
-        # Принимаем все лицензии автоматически
-        yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
-        
     - name: Create buildozer.spec with correct settings
       run: |
         buildozer init || true
         if [ -f buildozer.spec ]; then
-          # Используем более старую версию SDK для совместимости
+          # Используем более старые версии для совместимости
           sed -i 's/^android.sdk = .*/android.sdk = 26/g' buildozer.spec
           sed -i 's/^android.ndk = .*/android.ndk = 19c/g' buildozer.spec
           sed -i 's/^android.api = .*/android.api = 26/g' buildozer.spec
@@ -68,10 +59,19 @@ jobs:
           sed -i 's/^requirements = .*/requirements = python3,kivy/g' buildozer.spec
         fi
         
+    - name: Download Android SDK and accept licenses
+      run: |
+        # Запускаем buildozer чтобы он скачал Android SDK
+        buildozer android updatesdk || true
+        
+        # Ждем пока SDK скачается
+        sleep 30
+        
+        # Принимаем лицензии
+        yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
+        
     - name: Build APK
       run: |
-        # Принудительно принимаем лицензии перед сборкой
-        yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses
         buildozer -v android debug
         
     - name: Upload APK
