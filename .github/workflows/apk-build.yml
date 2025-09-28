@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     
     steps:
     - uses: actions/checkout@v4
@@ -18,17 +18,26 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y python3-pip git
+        sudo apt-get install -y python3-pip git openjdk-8-jdk
         
     - name: Install Buildozer with Cython
       run: |
         pip install buildozer cython==0.29.33
         
-    - name: Create buildozer.spec
+    - name: Create buildozer.spec with older SDK
       run: |
         buildozer init
-        # Ждем немного
-        sleep 5
+        # Используем старые версии SDK чтобы избежать лицензий
+        sed -i 's/^#android.sdk = .*/android.sdk = 26/g' buildozer.spec
+        sed -i 's/^#android.ndk = .*/android.ndk = 19c/g' buildozer.spec
+        sed -i 's/^#android.api = .*/android.api = 28/g' buildozer.spec
+        sed -i 's/^#android.minapi = .*/android.minapi = 21/g' buildozer.spec
+        
+    - name: Accept Android licenses
+      run: |
+        mkdir -p ~/.android
+        touch ~/.android/repositories.cfg
+        yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
         
     - name: Build APK
       run: |
