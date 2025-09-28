@@ -9,8 +9,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Build with Kivy Docker
-      uses: kivy/android-build-action@v1.1.0
+    - name: Build APK with Kivy
+      uses: kivy/buildozer-action@v1.1.0
       with:
         buildozer-version: master
         target: android debug
