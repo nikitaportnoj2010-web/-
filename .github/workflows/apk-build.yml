@@ -18,18 +18,14 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          python3-pip \
-          git \
-          openjdk-8-jdk \
-          unzip
+        sudo apt-get install -y python3-pip git openjdk-8-jdk unzip
         
-    - name: Install Buildozer from master branch
+    - name: Install Buildozer
       run: |
         pip install cython==0.29.33
-        pip install https://github.com/kivy/buildozer/archive/master.zip
+        pip install buildozer
         
-    - name: Create custom buildozer.spec
+    - name: Create buildozer.spec
       run: |
         cat > buildozer.spec << 'EOF'
 [app]
@@ -46,24 +42,14 @@ log_level = 2
 [android]
 api = 33
 minapi = 21
-# Пропускаем проверку лицензий
-skip_licenses = true
 EOF
         
-    - name: Build APK with license skip
+    - name: Build APK
       run: |
         buildozer -v android debug
       
     - name: Upload APK
-      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: nvweb-app
         path: bin/*.apk
-        
-    - name: Upload logs on failure
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: build-logs
-        path: .buildozer/
