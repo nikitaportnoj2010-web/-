@@ -1,4 +1,4 @@
-name: Build APK
+name: Build Android App
 
 on: [push]
 
@@ -9,14 +9,21 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Build APK with Kivy
-      uses: kivy/buildozer-action@v1.1.0
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
-        buildozer-version: master
-        target: android debug
+        python-version: '3.9'
+        
+    - name: Install Briefcase
+      run: pip install briefcase
+        
+    - name: Create Android project
+      run: |
+        briefcase create android
+        briefcase build android
         
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: nvweb-app
-        path: bin/*.apk
+        name: android-app
+        path: android/bin/*.apk
