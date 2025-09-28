@@ -2,7 +2,7 @@ name: Build Android APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
 
 jobs:
   build-apk:
@@ -12,33 +12,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Build using pre-configured Docker
+      uses: kivy/buildozer-action@master
       with:
-        python-version: '3.8'  # Более старая версия для совместимости
-        
-    - name: Install dependencies
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y \
-            build-essential \
-            git \
-            openjdk-8-jdk \
-            unzip \
-            zip \
-            python3-pip
-            
-    - name: Install Buildozer
-      run: |
-        pip install buildozer
-        
-    - name: Build APK (let Buildozer handle everything)
-      run: |
-        buildozer init
-        buildozer -v android debug
+        target: android debug
         
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: android-app
+        name: app-apk
         path: bin/*.apk
